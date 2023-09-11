@@ -3,8 +3,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { Client, GatewayIntentBits } from 'discord.js';
-import commands from './commands.js';
-const prefix = '/'; // You can change the command prefix if needed
+import commands from './commands/commands.js';
+import plant from './service/plant.js';
+import garden from './service/garden.js';
+import water from './service/water.js';
+import status from './service/status.js';
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -20,27 +23,29 @@ client.once('ready', () => {
     console.log(`Logged in as ${client.user.tag}`);
 });
 
-client.on('interactionCreate', async interaction => {
-    if (!interaction.isChatInputCommand()) return;
+const gardeners = {
+    lastWateredTimestamps: {}
+}; // Store server's garden data
 
-    if (interaction.commandName === 'ping') {
-        await interaction.reply('Pong!');
-    }
+client.once('ready', () => {
+    console.log(`Logged in as ${client.user.tag}`);
 });
-client.on('interactionCreate', async interaction => {
+
+client.on('interactionCreate', async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
 
-    if (interaction.commandName === 'bolbol') {
-        const emojisCache = interaction.guild.emojis.cache;
-        const emojisArray = Array.from(emojisCache.values());
-        console.log(emojisArray[0]);
-        if (emojisArray.length === 0) {
-            interaction.channel.send('No emojis or stickers found in this server.');
-            return;
-        }
+    if (interaction.commandName === 'plant') {
+        plant(interaction, gardeners);
 
-        const randomEmoji = emojisArray[Math.floor(Math.random() * emojisArray.length)];
-        interaction.channel.send(`${interaction.user.username} picked: ${randomEmoji}`);
+    } else if (interaction.commandName === 'garden') {
+        garden(interaction, gardeners);
+
+    } else if (interaction.commandName === 'water') {
+        water(interaction, gardeners);
+
+    } else if (interaction.commandName === 'status') {
+        status(interaction, gardeners);
+
     }
 });
 
