@@ -3,11 +3,15 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { Client, GatewayIntentBits } from 'discord.js';
+
 import commands from './commands/commands.js';
 import plant from './service/plant.js';
 import garden from './service/garden.js';
 import water from './service/water.js';
-import status from './service/status.js';
+import getGarden from './db/getGarden.js';
+
+
+ 
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -23,16 +27,10 @@ client.once('ready', () => {
     console.log(`Logged in as ${client.user.tag}`);
 });
 
-const gardeners = {
-    lastWateredTimestamps: {}
-}; // Store server's garden data
-
-client.once('ready', () => {
-    console.log(`Logged in as ${client.user.tag}`);
-});
-
 client.on('interactionCreate', async (interaction) => {
-    if (!interaction.isChatInputCommand()) return;
+    if (!interaction.isCommand() || interaction.user.bot) return;
+
+    const gardeners=await getGarden(interaction.guildId);
 
     if (interaction.commandName === 'plant') {
         plant(interaction, gardeners);
@@ -48,7 +46,4 @@ client.on('interactionCreate', async (interaction) => {
 
     }
 });
-
 client.login(process.env.DISCORD_TOKEN);
-
-

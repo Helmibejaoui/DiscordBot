@@ -1,29 +1,26 @@
+import addPlant from "../db/addPlant.js";
+
 export async function plant(interaction, gardeners) {
-    const option = interaction.options._hoistedOptions.find(option => option.name === 'plantname');
-    const plant = option;
-
-    if (!gardeners[interaction.guildId]) {
-        gardeners[interaction.guildId] = [];
-    }
-
-    // Simulate plant growth and health
-    const plantData = {
-        name: plant.value,
-        growth: 0, // Simulate growth percentage
-        health: 100, // Initial health points
-    };
-    const plantIndex = gardeners[interaction.guildId].findIndex(plant => plant.name === plantData.name);
-
-    if (plantIndex !== -1) {
-        // Plant not found, reply with an error message
-        await interaction.reply(`Plant named "${plantData.name}" is already in your virtual garden.`);
+    const plantName = interaction.options._hoistedOptions.find(option => option.name === 'plantname').value;
+    if (gardeners.plants.find((p => p.name === plantName))) {
+        await interaction.reply(`${plantName} is already in your virtual garden!`);
         return;
     }
 
+    // Simulate plant growth and health 
+    const plantData = {
+        name: plantName,
+        growth: 0,
+        health: 100,
+    };
 
-    gardeners[interaction.guildId].push(plantData);
-    await interaction.reply(`You planted a ${plant.value} in your virtual garden!`);
+    gardeners.plants.push(plantData);
+    try {
+        await addPlant(gardeners);
+        await interaction.reply(`You planted a ${plantName} in your virtual garden!`);
+    } catch (err) { console.error(`Something went wrong planting in your garden: ${err}\n`); }
 }
-export default async function (interaction, gardeners) {
+
+export default async function plantGarden(interaction, gardeners) {
     await plant(interaction, gardeners);
 }
